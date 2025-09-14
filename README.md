@@ -27,5 +27,5 @@ This project aims to solve this problem by removing the primary cause: user conf
 
 
 ## Project Ouput
-![Uploading Organic.png…]()
 
+<img width="1698" height="1406" alt="Organic" src="https://github.com/user-attachments/assets/edb5550c-dd56-4b8a-92bb-15272cafd753" />
