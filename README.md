@@ -24,3 +24,8 @@ This project aims to solve this problem by removing the primary cause: user conf
     Front-End: HTML/CSS and JS
 
     Back-End: FastAPI (for serving the model)
+
+
+## Project Ouput
+![Uploading Organic.png…]()
+
