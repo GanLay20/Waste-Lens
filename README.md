@@ -21,6 +21,6 @@ This project aims to solve this problem by removing the primary cause: user conf
 
     Machine Learning: Python, PyTorch, ResNet-18
 
-    Front-End: HTML/CSS
+    Front-End: HTML/CSS and JS
 
     Back-End: FastAPI (for serving the model)
