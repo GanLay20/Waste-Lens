@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Waste Classifier • ResNet-18</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  <style>
+    :root{
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --ink: #111;
+      --muted: #6b7280;
+      --accent: #0ea5e9;
+      --accent-weak: #e0f2fe;
+      --success: #16a34a;
+      --warn: #f59e0b;
+      --border: #e5e7eb;
+      --shadow: 0 12px 24px rgba(0,0,0,0.08);
+      --radius: 16px;
+      --radius-sm: 12px;
+      --radius-xs: 8px;
+      --maxw: 960px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:var(--bg); color:var(--ink);
+      font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      display:flex; align-items:flex-start; justify-content:center;
+    }
+
+    /* APP FRAME */
+    .frame{
+      width:100%;
+      max-width:var(--maxw);
+      margin: 28px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .frame__header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 14px 18px;
+      background: linear-gradient(180deg, #f9fafb, #f3f4f6);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      font-weight:700; letter-spacing:.2px;
+    }
+    .pill{
+      font-size:12px; color:#0369a1; background:var(--accent-weak);
+      border:1px solid #bae6fd; padding:4px 8px; border-radius:999px;
+    }
+    .sub{
+      color:var(--muted); font-size:13px;
+    }
+
+    .frame__body{ padding: 18px; }
+    .grid{
+      display:grid; grid-template-columns: 1.2fr 1fr; gap:18px;
+    }
+    @media (max-width: 920px){
+      .grid{grid-template-columns: 1fr; }
+    }
+
+    /* LEFT: UPLOAD PANEL */
+    .panel{
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-sm);
+      background: #fafafa;
+      padding: 18px;
+    }
+    .row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .muted{ color: var(--muted); }
+
+    .drop{
+      margin-top:14px;
+      background:#fff;
+      border:2px dashed #cbd5e1;
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      text-align:center;
+      transition: border-color .15s ease, background .15s ease;
+    }
+    .drop.dragover{ border-color: var(--accent); background: #f0f9ff; }
+    input[type="file"]{ display:none; }
+    .btn{
+      appearance:none; border:1px solid #0f172a; background:#0f172a; color:#fff;
+      border-radius: 10px; padding:10px 16px; cursor:pointer; font-weight:600;
+      transition: transform .06s ease, opacity .2s ease;
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn:disabled{ opacity:.5; cursor:not-allowed; }
+    .ghost{ background:#fff; color:#0f172a; }
+
+    .preview{
+      margin-top:14px; display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;
+    }
+    #prev{
+      width:280px; height:280px; object-fit:cover; border-radius: var(--radius-sm);
+      border:1px solid var(--border); background:#fff;
+    }
+
+    /* RIGHT: RESULT PANEL */
+    .card{
+      background:#fff; border:1px solid var(--border);
+      border-radius: var(--radius-sm); padding:16px;
+    }
+    #result{ font-size:1.3rem; font-weight:700; margin-bottom:6px; }
+    #status{ color:var(--muted); font-size:14px; }
+    #meta{ color:var(--muted); font-size:13px; margin-top:6px; }
+
+    .probs{ margin-top:12px; }
+    .prob{ margin:10px 0; }
+    .prob .line{
+      height:12px; background:#eef2f7; border-radius:999px; overflow:hidden;
+    }
+    .prob .fill{ height:100%; width:0; background:var(--accent); }
+    .prob .hdr{ display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+    .prob .lbl{ min-width:92px; font-weight:600; }
+    .prob .pct{ margin-left:auto; min-width:46px; text-align:right; color:var(--muted); }
+
+    .badge{
+      display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid var(--border);
+      background:#f8fafc; color:#0f172a;
+    }
+    .ok{ color:var(--success); border-color:#bbf7d0; background:#f0fdf4; }
+    .warn{ color:var(--warn); border-color:#fde68a; background:#fffbeb; }
+  </style>
+</head>
+<body>
+
+  <div class="frame" role="application" aria-label="Waste Classifier App">
+    <div class="frame__header">
+      <div>
+        <div class="brand">♻️ WasteLens <span class="pill">ResNet-18</span></div>
+        <div class="sub" id="status">Loading…</div>
+      </div>
+      <div class="sub" id="meta"></div>
+    </div>
+
+    <div class="frame__body">
+      <div class="grid">
+        <!-- LEFT: Upload -->
+        <section class="panel" aria-labelledby="upload-ttl">
+          <div class="row">
+            <h3 id="upload-ttl" style="margin:0;">Upload or Take a Photo</h3>
+            <span class="badge">.jpg · .png</span>
+          </div>
+          <div id="drop" class="drop" tabindex="0" aria-label="Drop image here">
+            <p style="margin: 6px 0 12px" class="muted">Drag & drop an image here, or</p>
+            <div class="row">
+              <label for="file" class="btn ghost">Choose File</label>
+              <button id="btn" class="btn" disabled>Predict</button>
+            </div>
+            <input id="file" type="file" accept="image/*" capture="environment"/>
+          </div>
+
+          <div class="preview">
+            <img id="prev" alt="Image preview"/>
+            <div style="min-width:220px;">
+              <div class="muted">Steps</div>
+              <ol style="margin:6px 0 0; padding-left:18px; color:#374151;">
+                <li>Select or drop an image</li>
+                <li>Click <b>Predict</b></li>
+                <li>See result & confidences</li>
+              </ol>
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT: Results -->
+        <aside class="card" aria-live="polite">
+          <div id="result">No image yet</div>
+          <div>
+            <span id="confidence-badge" class="badge">—</span>
+          </div>
+          <div class="probs" id="probs"></div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Grabs
+    const elStatus = document.getElementById('status');
+    const elMeta   = document.getElementById('meta');
+    const elFile   = document.getElementById('file');
+    const elBtn    = document.getElementById('btn');
+    const elPrev   = document.getElementById('prev');
+    const elRes    = document.getElementById('result');
+    const elProbs  = document.getElementById('probs');
+    const elDrop   = document.getElementById('drop');
+    const elBadge  = document.getElementById('confidence-badge');
+
+    // Optional token passthrough (?token=xyz)
+    const TOKEN   = new URL(location.href).searchParams.get('token') || '';
+    const cfgURL  = TOKEN ? `/config?token=${encodeURIComponent(TOKEN)}`   : '/config';
+    const predURL = TOKEN ? `/predict?token=${encodeURIComponent(TOKEN)}` : '/predict';
+
+    let CONFIG = { labels:['O','R'], threshold:0.65, arch:'resnet18', device:'cpu' };
+
+    // Load server config
+    fetch(cfgURL).then(r=>r.json()).then(cfg=>{
+      CONFIG = cfg;
+      elStatus.textContent = `Ready (arch: ${cfg.arch}, device: ${cfg.device}, threshold: ${cfg.threshold})`;
+      elMeta.textContent   = `Classes: ${cfg.labels.join(' , ')}`;
+    }).catch(()=>{ elStatus.textContent = 'Ready'; });
+
+    // Helpers
+    function setPreviewFromFile(f){
+      const url = URL.createObjectURL(f);
+      elPrev.src = url;
+    }
+    function enablePredict(v){ elBtn.disabled = !v; }
+
+    // File input change
+    elFile.addEventListener('change', ()=>{
+      const f = elFile.files[0];
+      elRes.textContent = ''; elProbs.innerHTML = ''; elBadge.textContent = '—'; elBadge.className = 'badge';
+      if(!f){ enablePredict(false); elPrev.src = ''; return; }
+      setPreviewFromFile(f); enablePredict(true);
+    });
+
+    // Drag & drop
+    ['dragenter','dragover'].forEach(ev =>
+      elDrop.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); elDrop.classList.add('dragover'); }));
+    ;['dragleave','drop'].forEach(ev =>
+      elDrop.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); elDrop.classList.remove('dragover'); }));
+    elDrop.addEventListener('drop', e=>{
+      const f = (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) || null;
+      if(!f) return;
+      // put file into the hidden input so the rest of logic works
+      const dt = new DataTransfer(); dt.items.add(f); elFile.files = dt.files;
+      elFile.dispatchEvent(new Event('change'));
+    });
+    // Keyboard support on drop zone (press Enter to open file picker)
+    elDrop.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ document.getElementById('file').click(); }});
+
+    // Predict
+    elBtn.addEventListener('click', async ()=>{
+      const f = elFile.files[0]; if(!f) return;
+      enablePredict(false);
+      elStatus.textContent = 'Predicting…';
+      elRes.textContent = ''; elProbs.innerHTML = ''; elBadge.textContent = '—'; elBadge.className = 'badge';
+
+      const fd = new FormData(); fd.append('file', f);
+      const t0 = performance.now();
+
+      try{
+        const r   = await fetch(predURL, { method:'POST', body: fd });
+        if(!r.ok){ throw new Error(await r.text()); }
+        const out = await r.json();
+        const dt  = Math.max(1, Math.round(performance.now() - t0));
+
+        const label = out.pred_label;
+        const pct   = (out.confidence * 100).toFixed(1);
+
+        elRes.textContent = out.unsure ? `Unsure (top: ${label} @ ${pct}%)` : `${label} — ${pct}%`;
+        elBadge.textContent = out.unsure ? 'Low confidence' : 'High confidence';
+        elBadge.className = 'badge ' + (out.unsure ? 'warn' : 'ok');
+
+        // Prob list
+        elProbs.innerHTML = '';
+        (out.probs || []).forEach(p=>{
+          const percent = Math.round((p.prob || 0) * 100);
+          const row = document.createElement('div');
+          row.className = 'prob';
+          row.innerHTML = `
+            <div class="hdr"><div class="lbl">${p.label}</div><div class="pct">${percent}%</div></div>
+            <div class="line"><div class="fill" style="width:${percent}%"></div></div>
+          `;
+          elProbs.appendChild(row);
+        });
+
+        elStatus.textContent = `Done in ${out.time_ms ?? dt} ms`;
+      }catch(err){
+        console.error(err);
+        elStatus.textContent = 'Error: could not predict';
+      }finally{
+        enablePredict(true);
+      }
+    });
+  </script>
+</body>
+</html>
