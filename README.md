@@ -5,7 +5,7 @@ This project was developed by Yan Myo Aung (Team Solo) at Hack the North 2025.
 
 ## The Problem
 
-In Canada, we generate over 3 million tonnes of plastic waste every year, and less than 11% is recycled. A major cause is recycling contamination—when non-recyclable items are put in the wrong bin, they can cause entire truckloads of good materials to be sent to a landfill.
+In Canada, we generate over 3 million tonnes of plastic waste every year, and less than 11% is recycled. A major cause is recycling contamination when non-recyclable items are put in the wrong bin, they can cause entire truckloads of good materials to be sent to a landfill.
 
 This project aims to solve this problem by removing the primary cause: user confusion.
 
