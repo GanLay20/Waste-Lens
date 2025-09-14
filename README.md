@@ -12,14 +12,9 @@ This project aims to solve this problem by removing the primary cause: user conf
 ## About the Dataset
 
 This project uses the Waste Classification Data dataset, a publicly available collection of images from Kaggle.
-
-    Source: Kaggle - Waste Classification Data
-
-    Content: The dataset contains over 22,500 images of waste, categorized into two main classes: Organic and Recyclable.
-
-    Structure: The data is pre-split into TRAIN and TEST directories, with subfolders for each class, making it ideal for supervised learning tasks.
-
-    Purpose: For this project, the dataset was used to train a ResNet-18 model to distinguish between the two primary types of waste, forming the core of the WasteLens classification engine.
+Source: Kaggle - Waste Classification Data
+    The dataset contains over 22,500 images of waste, categorized into two main classes: Organic and Recyclable.The data is pre-split into TRAIN and TEST directories, with subfolders for each class, making it ideal for supervised learning tasks.
+Purpose: For this project, the dataset was used to train a ResNet-18 model to distinguish between the two primary types of waste, forming the core of the WasteLens classification engine.
 
 ## Features
 
